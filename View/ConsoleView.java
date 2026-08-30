@@ -8,6 +8,10 @@ import Model.BallotStatus;
 import Model.ElectionStatus;
 import Model.PatternGroup;
 
+
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
+
 public class ConsoleView {
     private final ElectionController controller;
     private final Scanner scanner;

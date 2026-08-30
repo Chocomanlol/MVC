@@ -2,6 +2,8 @@ import Controller.ElectionController;
 import Model.CSVDataLoader;
 import Model.ElectionModel;
 import View.ConsoleView;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 public class Main {
     public static void main(String[] args) {

@@ -1,15 +1,11 @@
 package View;
 
 import Controller.ElectionController;
-import java.util.Map;
-import java.util.Scanner;
-
 import Model.BallotStatus;
 import Model.ElectionStatus;
 import Model.PatternGroup;
-
-
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Scanner;
 
 public class ConsoleView {
@@ -26,7 +22,7 @@ public class ConsoleView {
         while (running) {
             printHeader();
             printMenu();
-            System.out.print("เลือกเมนู (0-5): ");
+            System.out.print("Select option (0-5): ");
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
@@ -36,109 +32,109 @@ public class ConsoleView {
                 case "4" -> decidePendingGroups();
                 case "5" -> showDetailedStatus();
                 case "0" -> {
-                    System.out.println("\n👋 ปิดโปรแกรมเรียบร้อยแล้ว");
+                    System.out.println("\n👋 Application closed successfully.");
                     running = false;
                 }
-                default -> System.out.println("❌ เมนูไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+                default -> System.out.println("❌ Invalid option. Please try again.");
             }
         }
     }
 
-    // --- R5: หน้าสรุปสถานะตามวงจรชีวิตการเลือกตั้ง ---
+    // --- R5: Status Summary according to Election Lifecycle ---
     private void printHeader() {
         System.out.println("\n==================================================");
-        System.out.println("🗳️  ระบบเลือกตั้งประธานชมรม");
-        System.out.println("สถานะปัจจุบัน: [" + controller.getElectionStatus() + "]");
+        System.out.println("🗳️  Club President Election System");
+        System.out.println("Current Status: [" + controller.getElectionStatus() + "]");
         System.out.println("--------------------------------------------------");
 
         ElectionStatus status = controller.getElectionStatus();
         if (status == ElectionStatus.OPEN) {
-            System.out.println("📊 จำนวนบัตรที่รับแล้วทั้งหมด: " + controller.getBallots().size() + " ใบ");
+            System.out.println("📊 Total ballots received: " + controller.getBallots().size() + " ballots");
         } else if (status == ElectionStatus.CLOSED) {
-            System.out.println("📊 ผลคะแนนชั่วคราว (จากบัตรที่รับรองแล้ว):");
+            System.out.println("📊 Provisional Scores (from approved ballots):");
             printScores();
         } else if (status == ElectionStatus.FINALIZED) {
-            System.out.println("🏆 ผลการเลือกตั้งอย่างเป็นทางการ (FINALIZED):");
+            System.out.println("🏆 Official Election Results (FINALIZED):");
             printScores();
-            System.out.println("✅ บัตรที่รับรอง: " + controller.getApprovedBallotCount() + " ใบ | ❌ บัตรที่ไม่นับ: " + controller.getRejectedBallotCount() + " ใบ");
+            System.out.println("✅ Approved ballots: " + controller.getApprovedBallotCount() + " | ❌ Rejected ballots: " + controller.getRejectedBallotCount());
         }
         System.out.println("==================================================");
     }
 
     private void printMenu() {
-        System.out.println("1. ดูรายชื่อผู้สมัครทั้งหมด");
-        System.out.println("2. ลงคะแนนเสียง (โหมดผู้มีสิทธิ์เลือกตั้ง)");
-        System.out.println("3. ปิดรับคะแนน (โหมดเจ้าหน้าที่)");
-        System.out.println("4. ตรวจตัดสินกลุ่มบัตรซ้ำ (โหมดเจ้าหน้าที่)");
-        System.out.println("5. ดูสรุปสถานะและ Audit Trail ทั้งหมด");
-        System.out.println("0. ออกจากโปรแกรม");
+        System.out.println("1. View all candidates");
+        System.out.println("2. Cast vote (Voter mode)");
+        System.out.println("3. Close election (Officer mode)");
+        System.out.println("4. Review duplicate pattern groups (Officer mode)");
+        System.out.println("5. View summary status and Audit Trail");
+        System.out.println("0. Exit program");
     }
 
-    // --- R2: แสดงผู้สมัคร ---
+    // --- R2: Display candidates ---
     private void showCandidates() {
-        System.out.println("\n--- รายชื่อผู้สมัครทั้งหมด ---");
+        System.out.println("\n--- All Candidates ---");
         controller.getCandidates().forEach(c -> 
-            System.out.println("รหัส: " + c.getId() + " | ชื่อ: " + c.getName())
+            System.out.println("ID: " + c.getId() + " | Name: " + c.getName())
         );
     }
 
-    // --- R2: รับค่าการลงคะแนน ---
+    // --- R2: Cast vote ---
     private void castVote() {
         if (controller.getElectionStatus() != ElectionStatus.OPEN) {
-            System.out.println("❌ ระบบปิดรับคะแนนแล้ว ไม่สามารถลงคะแนนเพิ่มได้");
+            System.out.println("❌ Election is closed. Voting is no longer allowed.");
             return;
         }
 
-        System.out.println("\n--- ลงคะแนนเสียง ---");
-        System.out.print("กรอกรหัสผู้มีสิทธิ์ (เช่น V01-V07): ");
+        System.out.println("\n--- Cast Vote ---");
+        System.out.print("Enter Voter ID (e.g., V01-V07): ");
         String voterId = scanner.nextLine().trim();
 
         showCandidates();
-        System.out.print("เลือกอันดับ 1 (กรอกรหัสผู้สมัคร): ");
+        System.out.print("Select Rank 1 (Enter Candidate ID): ");
         String r1 = scanner.nextLine().trim();
-        System.out.print("เลือกอันดับ 2 (กรอกรหัสผู้สมัคร): ");
+        System.out.print("Select Rank 2 (Enter Candidate ID): ");
         String r2 = scanner.nextLine().trim();
-        System.out.print("เลือกอันดับ 3 (กรอกรหัสผู้สมัคร): ");
+        System.out.print("Select Rank 3 (Enter Candidate ID): ");
         String r3 = scanner.nextLine().trim();
 
         String response = controller.castVote(voterId, r1, r2, r3);
         System.out.println(response);
     }
 
-    // --- R3: ปิดรับคะแนน ---
+    // --- R3: Close election ---
     private void closeElection() {
         String response = controller.closeElection();
         System.out.println(response);
     }
 
-    // --- R4: ตรวจตัดสินกลุ่มบัตรซ้ำ ---
+    // --- R4: Review duplicate pattern groups ---
     private void decidePendingGroups() {
         if (controller.getElectionStatus() != ElectionStatus.CLOSED) {
-            System.out.println("❌ สามารถตรวจตัดสินได้เฉพาะตอนสถานะ CLOSED เท่านั้น");
+            System.out.println("❌ Pattern groups can only be reviewed when status is CLOSED.");
             return;
         }
 
         Map<String, PatternGroup> groups = controller.getPatternGroups();
         boolean hasPending = false;
 
-        System.out.println("\n--- รายการกลุ่มรูปแบบบัตรที่รอตรวจสอบ (PENDING) ---");
+        System.out.println("\n--- Pending Pattern Groups (PENDING) ---");
         for (Map.Entry<String, PatternGroup> entry : groups.entrySet()) {
             PatternGroup g = entry.getValue();
             if (g.getStatus() == BallotStatus.PENDING) {
                 hasPending = true;
-                System.out.println("กลุ่มรูปแบบ: [" + g.getPatternKey() + "] | จำนวน: " + g.getBallots().size() + " ใบ");
+                System.out.println("Pattern Group: [" + g.getPatternKey() + "] | Count: " + g.getBallots().size() + " ballots");
             }
         }
 
         if (!hasPending) {
-            System.out.println("ไม่มีกลุ่มรูปแบบที่รอการตรวจสอบแล้ว");
+            System.out.println("No pending pattern groups to review.");
             return;
         }
 
-        System.out.print("\nกรอก Pattern ที่ต้องการตัดสิน (เช่น C01>C02>C03): ");
+        System.out.print("\nEnter Pattern Key to review (e.g., C01>C02>C03): ");
         String patternKey = scanner.nextLine().trim();
 
-        System.out.print("เลือกคำตัดสิน (1 = รับรอง / 2 = ไม่นับ): ");
+        System.out.print("Select decision (1 = Approve / 2 = Reject): ");
         String decision = scanner.nextLine().trim();
 
         if (decision.equals("1")) {
@@ -146,20 +142,20 @@ public class ConsoleView {
         } else if (decision.equals("2")) {
             System.out.println(controller.decideGroup(patternKey, false));
         } else {
-            System.out.println("❌ ตัวเลือกคำตัดสินไม่ถูกต้อง");
+            System.out.println("❌ Invalid decision choice.");
         }
     }
 
     // --- R5 & Audit Trail ---
     private void showDetailedStatus() {
-        System.out.println("\n--- รายละเอียดกลุ่มรูปแบบบัตรทั้งหมด ---");
+        System.out.println("\n--- All Pattern Groups Summary ---");
         controller.getPatternGroups().values().forEach(g -> 
-            System.out.println("กลุ่ม: [" + g.getPatternKey() + "] | สถานะ: " + g.getStatus() + " | จำนวนบัตร: " + g.getBallots().size() + " ใบ")
+            System.out.println("Group: [" + g.getPatternKey() + "] | Status: " + g.getStatus() + " | Ballot Count: " + g.getBallots().size() + " ballots")
         );
 
-        System.out.println("\n--- รายละเอียดบัตรลงคะแนนทั้งหมด (Audit Trail) ---");
+        System.out.println("\n--- All Ballots Detail (Audit Trail) ---");
         controller.getBallots().forEach(b -> 
-            System.out.println("บัตร " + b.getId() + " | ผู้ลงคะแนน: " + b.getVoterId() + " | เลือก: " + b.getRanking() + " | สถานะบัตร: " + b.getStatus())
+            System.out.println("Ballot " + b.getId() + " | Voter: " + b.getVoterId() + " | Ranking: " + b.getRanking() + " | Ballot Status: " + b.getStatus())
         );
     }
 
@@ -168,10 +164,7 @@ public class ConsoleView {
             String candidateName = controller.getCandidates().stream()
                     .filter(c -> c.getId().equals(candidateId))
                     .findFirst().map(c -> c.getName()).orElse("Unknown");
-            System.out.println("  • " + candidateId + " (" + candidateName + "): " + score + " คะแนน");
+            System.out.println("  • " + candidateId + " (" + candidateName + "): " + score + " points");
         });
     }
-
-
-    
 }

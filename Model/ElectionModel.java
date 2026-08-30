@@ -37,30 +37,30 @@ public class ElectionModel {
     public void castVote(String voterId, String r1, String r2, String r3) {
         // 1. ตรวจสอบสถานะการเลือกตั้ง
         if (status != ElectionStatus.OPEN) {
-            throw new IllegalStateException("ปฏิเสธ: ระบบไม่ได้อยู่ในสถานะเปิดรับคะแนน (OPEN)");
+            throw new IllegalStateException("reject: System is not in OPEN status.");
         }
 
         // 2. ตรวจสอบผู้มีสิทธิ์
         Voter voter = voters.get(voterId);
         if (voter == null || !voter.isActive()) {
-            throw new IllegalArgumentException("ปฏิเสธ: ผู้มีสิทธิ์ไม่มีอยู่หรือไม่ได้ Active");
+            throw new IllegalArgumentException("reject: Voter does not exist or is inactive.");
         }
 
         // 3. ตรวจสอบการลงคะแนนซ้ำ (1 ผู้มีสิทธิ์ลงได้ 1 ครั้ง)
         boolean hasVoted = ballots.stream().anyMatch(b -> b.getVoterId().equals(voterId));
         if (hasVoted) {
-            throw new IllegalArgumentException("ปฏิเสธ: ผู้มีสิทธิ์เคยลงคะแนนแล้ว");
+            throw new IllegalArgumentException("reject: Voter has already cast a vote.");
         }
 
         // 4. ตรวจสอบว่าเลือกผู้สมัคร 3 คน และไม่ซ้ำกัน
         if (r1 == null || r2 == null || r3 == null) {
-            throw new IllegalArgumentException("ปฏิเสธ: ต้องเลือกผู้สมัครให้ครบ 3 อันดับ");
+            throw new IllegalArgumentException("reject: Must select candidates for all 3 rankings.");
         }
         if (r1.equals(r2) || r1.equals(r3) || r2.equals(r3)) {
-            throw new IllegalArgumentException("ปฏิเสธ: ห้ามเลือกผู้สมัครซ้ำกันในบัตรใบเดียวกัน");
+            throw new IllegalArgumentException("reject: Duplicate candidate choices are not allowed on the same ballot.");
         }
         if (!candidates.containsKey(r1) || !candidates.containsKey(r2) || !candidates.containsKey(r3)) {
-            throw new IllegalArgumentException("ปฏิเสธ: พบรหัสผู้สมัครที่ไม่มีอยู่ในระบบ");
+            throw new IllegalArgumentException("reject: Candidate ID not found in the system.");
         }
 
         // บันทึกบัตรลงคะแนนใหม่
@@ -71,7 +71,7 @@ public class ElectionModel {
     // --- R3: การปิดรับคะแนนและตรวจจับรูปแบบบัตรซ้ำ ---
     public void closeElection() {
         if (status != ElectionStatus.OPEN) {
-            throw new IllegalStateException("ปฏิเสธ: สามารถปิดรับคะแนนได้เฉพาะสถานะ OPEN เท่านั้น");
+            throw new IllegalStateException("reject: Election can only be closed when status is OPEN.");
         }
         status = ElectionStatus.CLOSED;
 
@@ -105,12 +105,12 @@ public class ElectionModel {
     // --- R4: การตรวจกลุ่มบัตรและการสรุปผล ---
     public void decideGroup(String patternKey, boolean approve) {
         if (status != ElectionStatus.CLOSED) {
-            throw new IllegalStateException("ปฏิเสธ: สามารถตัดสินกลุ่มได้เฉพาะในสถานะ CLOSED เท่านั้น");
+            throw new IllegalStateException("reject: Group decisions can only be made when the election status is CLOSED.");
         }
 
         PatternGroup group = patternGroups.get(patternKey);
         if (group == null || group.getStatus() != BallotStatus.PENDING) {
-            throw new IllegalArgumentException("ปฏิเสธ: ไม่พบกลุ่ม หรือกลุ่มนี้ไม่ได้อยู่ในสถานะรอตรวจสอบ (PENDING)");
+            throw new IllegalArgumentException("reject: Pattern group not found, or this group is not in PENDING status (PENDING)");
         }
 
         // เจ้าหน้าที่ตัดสินเป็น รับรอง (APPROVED) หรือ ไม่นับ (REJECTED)

@@ -18,7 +18,7 @@ public class ConsoleView {
 
     public ConsoleView(ElectionController controller) {
         this.controller = controller;
-        this.scanner = new Scanner(System.in);
+        this.scanner = new Scanner(System.in, StandardCharsets.UTF_8);
     }
 
     public void start() {
@@ -171,4 +171,7 @@ public class ConsoleView {
             System.out.println("  • " + candidateId + " (" + candidateName + "): " + score + " คะแนน");
         });
     }
+
+
+    
 }
